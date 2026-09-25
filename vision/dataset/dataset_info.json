@@ -1,7 +1,7 @@
 {
   "project": "钢球数据集",
   "tasks": [
-    "2653283828/钢球数据集/images_1"
+    "钢球数据集/images_1"
   ],
   "format": "YOLO",
   "split_ratios": {
