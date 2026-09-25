@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "diansai",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "diansai",
+                "resourceId": "/diansai"
+            },
+            "flashSettings": {
+                "eraseOnLaunch": true,
+                "eraseMethod": "mass erase"
+            }
+        }
+    ]
+}

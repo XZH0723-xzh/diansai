@@ -1,0 +1,22 @@
+# 编译产物 / IDE 缓存
+Debug/
+Release/
+*.o
+*.out
+*.map
+*.d
+*.obj
+*.hex
+
+# TI CCS
+targetConfigs/*.ccxml.bak
+
+# 编辑器
+.theia/
+*.autosave
+__pycache__/
+*.pyc
+
+# 系统
+Thumbs.db
+Desktop.ini

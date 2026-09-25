@@ -1,0 +1,14 @@
+/* 任务一(从板): 自动启动 */
+#include "task1.h"
+#include "../source/0.96oled.h"
+static int g_p=0;
+void task1_init(void){g_p=0;} int task1_phase(void){return g_p;}
+bool task1_update(int cx,bool ok){(void)ok;if(!g_p)g_p=1;return false;}
+void task1_draw_oled(int cx){
+    oled_clear_buf(); char b[14]; int p=0;
+    b[p++]='P';b[p++]='0';b[p++]=' '; int e=(cx-320)*39/100;
+    if(e>=0)b[p++]='+';else{b[p++]='-';e=-e;}
+    if(e>=100)b[p++]='0'+e/100; if(e>=10)b[p++]='0'+(e/10)%10;
+    b[p++]='0'+e%10;b[p++]='m';b[p++]='m';b[p]=0;
+    oled_draw_string(0,0,b); oled_draw_string(3,0,"T1:RUN"); oled_refresh();
+}

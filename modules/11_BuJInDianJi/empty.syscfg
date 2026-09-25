@@ -1,0 +1,89 @@
+/**
+ * empty.syscfg：MSPM0G3507 + Y42的SysConfig硬件配置
+ *
+ * STEP：PA30 -> TIMG8_CCP1硬件PWM输出
+ * DIR ：PB11 -> 普通GPIO输出
+ *
+ * 本工程只控制Y42，不启用直流电机、编码器、OLED、I2C、UART或CAN。
+ *
+ * 引脚冲突说明：
+ * 原10_DC_MOTOR_PID_2工程的PA30被OLED的I2C1_SDA占用；
+ * 当前Y42独立工程没有启用OLED/I2C，因此PA30可以安全分配给STEP。
+ * PB11在原工程中没有被使用。
+ */
+//@cliArgs --device "MSPM0G350X" --package "LQFP-64(PM)" --part "Default"
+//@v2CliArgs --device "MSPM0G3507" --package "LQFP-64(PM)"
+
+/* 加载GPIO、PWM、系统时钟和工程配置模块。 */
+const GPIO          = scripting.addModule("/ti/driverlib/GPIO", {}, false);
+const GPIO1         = GPIO.addInstance();
+const PWM           = scripting.addModule("/ti/driverlib/PWM", {}, false);
+const PWM1          = PWM.addInstance();
+const SYSCTL        = scripting.addModule("/ti/driverlib/SYSCTL", {}, false);
+const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
+
+/*
+ * Y42方向控制引脚：
+ * SysConfig会把PB11初始化为输出GPIO，并生成：
+ *   Y42_CTRL_PORT
+ *   Y42_CTRL_DIR_PIN
+ * 等供C代码使用的宏。
+ */
+GPIO1.$name                         = "Y42_CTRL";
+GPIO1.associatedPins[0].$name       = "DIR";
+GPIO1.associatedPins[0].pin.$assign = "PB11";
+
+/*
+ * STEP脉冲定时器配置：
+ *
+ * TIMG8使用BUSCLK作为时钟源，先除以8，再预分频4。
+ * 默认BUSCLK为32 MHz，所以TIMG8计数时钟为：
+ *   32 MHz ÷ 8 ÷ 4 = 1 MHz。
+ *
+ * C驱动读取SysConfig生成的Y42_STEP_PWM_INST_CLK_FREQ，
+ * 不会在程序中写死1 MHz；以后改变系统时钟时仍可正确计算STEP频率。
+ */
+PWM1.$name                              = "Y42_STEP_PWM";
+
+/* 定时器时钟分频参数：BUSCLK / 8 / 4。 */
+PWM1.clockDivider                       = 8;
+PWM1.clockPrescale                      = 4;
+
+/* 边沿对齐向上计数PWM，适合输出普通STEP方波。 */
+PWM1.pwmMode                            = "EDGE_ALIGN_UP";
+
+/*
+ * SysConfig初始化时的默认周期值。
+ * 实际运动前，y42_stepper.c会根据pulse_hz重新计算并覆盖该数值。
+ */
+PWM1.timerCount                         = 1000;
+
+/* 初始化后不自动启动，避免上电时Y42意外运动。 */
+PWM1.timerStartTimer                    = false;
+
+/*
+ * 允许LOAD事件中断。
+ * 定量运动时，每个完整PWM周期触发一次，用于统计已经输出的脉冲数。
+ */
+PWM1.interrupts                         = ["LOAD_EVENT"];
+
+/* 使用TIMG8的比较通道1。 */
+PWM1.ccIndex                            = [1];
+PWM1.peripheral.$assign                 = "TIMG8";
+
+/* 将TIMG8_CCP1复用到PA30，对外连接Y42 Stp。 */
+PWM1.peripheral.ccp1Pin.$assign         = "PA30";
+PWM1.PWM_CHANNEL_1.$name                = "ti_driverlib_pwm_PWMTimerCC0";
+
+/* 默认占空比50%，使STEP高、低电平宽度基本相等。 */
+PWM1.PWM_CHANNEL_1.dutyCycle            = 50;
+
+/* 使用MSPM0G3507默认的系统时钟配置。 */
+SYSCTL.forceDefaultClkConfig = true;
+
+/* 保留CCS调试接口配置，用于下载和在线调试。 */
+const Board              = scripting.addModule("/ti/driverlib/Board", {}, false);
+Board.peripheral.$assign = "DEBUGSS";
+
+/* 指定目标芯片为MSPM0G3507。 */
+ProjectConfig.deviceSpin = "MSPM0G3507";

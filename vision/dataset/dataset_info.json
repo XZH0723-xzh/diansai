@@ -1,0 +1,24 @@
+{
+  "project": "钢球数据集",
+  "tasks": [
+    "2653283828/钢球数据集/images_1"
+  ],
+  "format": "YOLO",
+  "split_ratios": {
+    "train": 70,
+    "val": 20,
+    "test": 10
+  },
+  "total_images": 8,
+  "train_images": 5,
+  "val_images": 1,
+  "test_images": 2,
+  "labels": [
+    {
+      "id": 0,
+      "name": "1111",
+      "color": "#9CA3AF"
+    }
+  ],
+  "export_time": "2026-07-25 11:55:24"
+}
